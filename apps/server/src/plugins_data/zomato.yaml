@@ -1,1 +1,16 @@
- 
+ name: zomato
+type: api
+base_url: "https://api.zomato.com/v1"
+auth_type: bearer
+headers:
+  Authorization: "Bearer DEMO_TOKEN"
+
+actions:
+  - id: search_restaurants
+    method: GET
+    endpoint: "/search"
+    description: "Search restaurants in a location"
+
+  - id: get_menu
+    method: GET
+    endpoint: "/restaurant/menu"
