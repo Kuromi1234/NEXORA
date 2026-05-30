@@ -6,10 +6,13 @@
     "axios": "^1.13.2",
     "bcrypt": "^6.0.0",
     "chokidar": "^5.0.0",
+    "cors": "^2.8.6",
     "dotenv": "^17.2.3",
+    "express": "^5.2.1",
     "fastify": "^5.7.1",
     "ioredis": "^5.9.2",
     "jsonwebtoken": "^9.0.3",
+    "morgan": "^1.10.1",
     "pino": "^10.3.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
@@ -33,7 +36,7 @@
     "vite": "^7.3.1",
     "vitest": "^4.0.18"
   },
-   "scripts": {
+  "scripts": {
     "dev": "tsx server/index.ts",
     "build": "tsc",
     "start": "node dist/server/index.js",
