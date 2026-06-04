@@ -15,23 +15,29 @@ dotenv.config({
 
 const app = express();
 
+app.use(morgan("dev"));
 app.use(cors());
 app.use(express.json());
 
-app.get("/restruant", (req, res) => {
-  res.json({restruant:["Pizza Hut", "Domino's", "KFC"]});
+app.get("/restruants", (req, res) => {
+  res.json({restruants:["Pizza Hut", "Domino's", "KFC"]});
 });
 
 app.post("/bookings", (req,res)=>{
-  res.json({bookings:"confimed"})
+  res.json({bookings:"confirmed"})
 });
 
 app.post("/auth/login", (req,res)=>{
-  res.json({token:generatedToken});
+  res.json({token:"fake-jwt-token"});
 });
 
+app.use((err, req, res , next) => {
+  console.error(err.stack);
+  res.status(err.status || 500).json({ error: err.message || "spomething went wrong" });
+});
 const PORT = process.env.PORT || 2000;
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
