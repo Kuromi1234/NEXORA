@@ -19,8 +19,8 @@ app.use(morgan("dev"));
 app.use(cors());
 app.use(express.json());
 
-app.get("/restruants", (req, res) => {
-  res.json({restruants:["Pizza Hut", "Domino's", "KFC"]});
+app.get("/restraunts", (req, res) => {
+  res.json({restraunts:["Pizza Hut", "Domino's", "KFC"]});
 });
 
 app.post("/bookings", (req,res)=>{
