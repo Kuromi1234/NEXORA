@@ -19,6 +19,9 @@ app.use(morgan("dev"));
 app.use(cors());
 app.use(express.json());
 
+console.log("FILE:", __filename);
+console.log("DIR:", __dirname);
+
 app.get("/restraunts", (req, res) => {
   res.json({restraunts:["Pizza Hut", "Domino's", "KFC"]});
 });
