@@ -38,11 +38,10 @@
     "vitest": "^4.0.18"
   },
   "scripts": {
-    "dev": "tsx server/index.ts",
     "build": "tsc",
     "start": "node dist/server/index.js",
     "typecheck": "tsc --noEmit",
-    "Dev": "cross-env NODE_ENV=development nodemon server/server.js",
+    "dev": "cross-env NODE_ENV=development nodemon server/server.js",
     "staging": "cross-env NODE_ENV=staging node server/server.js",
     "prod": "cross-env NODE_ENV=production node server/server.js"
   }
