@@ -36,7 +36,7 @@ app.post("/auth/login", (req,res)=>{
 
 app.use((err, req, res , next) => {
   console.error(err.stack);
-  res.status(err.status || 500).json({ error: err.message || "spomething went wrong" });
+  res.status(err.status || 500).json({ error: err.message || "something went wrong" });
 });
 const PORT = process.env.PORT || 2000;
 
