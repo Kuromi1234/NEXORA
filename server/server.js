@@ -3,6 +3,8 @@ const cors = require("cors");
 const morgan = require("morgan");
 const dotenv = require("dotenv");
 const path = require("path");
+const connectDB = require("./Src/config/db");
+const mongoose = require("mongoose");
 
 console.log("NODE_ENV =", process.env.NODE_ENV);
 
@@ -38,9 +40,15 @@ app.use((err, req, res , next) => {
   console.error(err.stack);
   res.status(err.status || 500).json({ error: err.message || "something went wrong" });
 });
+
 const PORT = process.env.PORT || 2000;
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+const startServer = async () => {
+  await connectDB();
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+    console.log("Ready State:", mongoose.connection.readyState);
+  });
+};
 
+startServer();
