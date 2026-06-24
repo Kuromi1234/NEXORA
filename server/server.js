@@ -5,8 +5,10 @@ const dotenv = require("dotenv");
 const path = require("path");
 const connectDB = require("./Src/config/db");
 const mongoose = require("mongoose");
+const cookieParser = require("cookie-parser");
+const authRoutes = require("./Src/Routes/auth.route");
 
-console.log("NODE_ENV =", process.env.NODE_ENV);
+
 
 dotenv.config({
   path: path.join(
@@ -14,27 +16,15 @@ dotenv.config({
     `../.env.${process.env.NODE_ENV || "development"}`
   ),
 });
+console.log("NODE_ENV =", process.env.NODE_ENV);
 
 const app = express();
 
 app.use(morgan("dev"));
 app.use(cors());
 app.use(express.json());
-
-console.log("FILE:", __filename);
-console.log("DIR:", __dirname);
-
-app.get("/restraunts", (req, res) => {
-  res.json({restraunts:["Pizza Hut", "Domino's", "KFC"]});
-});
-
-app.post("/bookings", (req,res)=>{
-  res.json({bookings:"confirmed"})
-});
-
-app.post("/auth/login", (req,res)=>{
-  res.json({token:"fake-jwt-token"});
-});
+app.use(cookieParser());
+app.use("/api/auth", authRoutes);
 
 app.use((err, req, res , next) => {
   console.error(err.stack);
