@@ -1,4 +1,3 @@
-// server/src/routes/auth.routes.js
 const express = require('express')
 const router = express.Router()
 const { register, login, refresh, logout } = require('../controllers/auth.controller')
