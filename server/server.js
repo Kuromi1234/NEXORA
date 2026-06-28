@@ -7,6 +7,8 @@ const connectDB = require("./Src/config/db");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const authRoutes = require("./Src/Routes/auth.route");
+const bookingRoutes = require("./Src/Routes/booking.routes");
+const restaurantRoutes = require("./Src/Routes/restaurant.routes");
 
 
 
@@ -25,6 +27,8 @@ app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
 app.use("/api/auth", authRoutes);
+app.use("/restaurants", restaurantRoutes);
+app.use("/bookings", bookingRoutes);
 
 app.use((err, req, res , next) => {
   console.error(err.stack);
