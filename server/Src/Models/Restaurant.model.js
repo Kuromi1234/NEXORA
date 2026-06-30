@@ -1,5 +1,6 @@
 // Restaurant.model.js
 const mongoose = require("mongoose");
+const { PAYMENT_POLICY } = require("../Utils/constants");
 
 const restaurantSchema = new mongoose.Schema(
   {
@@ -12,6 +13,20 @@ const restaurantSchema = new mongoose.Schema(
     location: {
       lat: { type: Number, required: true },
       lng: { type: Number, required: true },
+    },
+    paymentPolicy: {
+      type: String,
+      enum: Object.values(PAYMENT_POLICY),
+      default: PAYMENT_POLICY.NONE,
+    },
+    depositAmount: {
+      type: Number,
+      default: 0,
+    },
+    ownerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
     },
   },
   { timestamps: true },
