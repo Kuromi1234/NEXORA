@@ -1,0 +1,64 @@
+const BOOKING_STATUS = {
+  INITIATED: 'INITIATED',
+  AGENT_SEARCHING: 'AGENT_SEARCHING',
+  AGENT_CALLING: 'AGENT_CALLING',
+  NEGOTIATING: 'NEGOTIATING',
+  RESTAURANT_CONFIRMED: 'RESTAURANT_CONFIRMED',
+  PAYMENT_PENDING: 'PAYMENT_PENDING',
+  PAYMENT_COMPLETED: 'PAYMENT_COMPLETED',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED',
+  CANCELLED: 'CANCELLED'
+};
+
+const AGENT_SESSION_STATUS = {
+  SEARCHING: 'SEARCHING',
+  CALLING: 'CALLING',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED'
+};
+
+const CALL_OUTCOME = {
+  NO_ANSWER: 'no_answer',
+  CONFIRMED: 'confirmed',
+  REJECTED: 'rejected'
+};
+
+const PAYMENT_STATUS = {
+  PENDING: 'pending',
+  SUCCESS: 'success',
+  FAILED: 'failed',
+  REFUNDED: 'refunded'
+};
+
+const PAYMENT_POLICY = {
+  NONE: 'none',
+  DEPOSIT: 'deposit',
+  FULL: 'full'
+};
+
+const USER_ROLES = {
+  USER: 'user',
+  ADMIN: 'admin'
+};
+
+const PERMISSIONS = {
+  BOOKING_CREATE: 'booking:create',
+  BOOKING_READ_OWN: 'booking:read:own',
+  BOOKING_CANCEL_OWN: 'booking:cancel:own',
+  BOOKING_READ_ANY: 'booking:read:any',
+  BOOKING_DELETE: 'booking:delete',
+  RESTAURANT_READ: 'restaurant:read',
+  RESTAURANT_MANAGE: 'restaurant:manage',
+  USER_MANAGE: 'user:manage'
+};
+
+module.exports = {
+  BOOKING_STATUS,
+  AGENT_SESSION_STATUS,
+  CALL_OUTCOME,
+  PAYMENT_STATUS,
+  PAYMENT_POLICY,
+  USER_ROLES,
+  PERMISSIONS
+};
