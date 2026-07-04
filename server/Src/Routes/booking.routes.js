@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const authMiddleware = require("../Middlewares/auth.middleware");
 const requirePermission = require("../Middlewares/rbac.middleware");
+const checkOwnership = require("../Middlewares/abac.middleware");
 const {
   createBooking,
   getMyBookings,
@@ -28,10 +29,10 @@ router.get(
   getAllBookings,
 );
 router.delete(
-  "/:id",
-  authMiddleware,
-  requirePermission("booking:delete"),
-  deleteBooking,
+  '/:id',
+  authMiddleware,                              
+  requirePermission(PERMISSIONS.BOOKING_DELETE), 
+  checkOwnership(Booking, 'userId'),          
+  deleteBooking                               
 );
-
 module.exports = router;
