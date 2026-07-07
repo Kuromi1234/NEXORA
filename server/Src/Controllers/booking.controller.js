@@ -1,69 +1,193 @@
-const Booking = require("../Models/Booking.model");
-const Restaurant = require("../Models/Restaurant.model");
-const runScraperAgent = require("../Agents/scraper.agent");
+// controllers/booking.controller.js
+const Booking = require('../models/Booking.model');
+const AgentSession = require('../models/AgentSession.model');
+const { parseIntent } = require('../services/intent.service');
+const { runScraperAgent } = require('../agents/scraper.agent');
+const { BOOKING_STATUS, AGENT_SESSION_STATUS } = require('../utils/constants');
 
-const createBooking = async (req, res, next) => {
+/**
+ * POST /bookings/intent
+ * Flow A — agent-driven booking
+ * Takes raw natural language, parses intent via Claude API,
+ * creates booking, kicks off scraper agent
+ */
+const createBookingIntent = async (req, res, next) => {
   try {
-    const { restaurantId, date, timeSlot, partySize } = req.body;
+    const { rawText, location } = req.body;
 
-    const restaurant = await Restaurant.findById(restaurantId);
-    if (!restaurant)
-      return next({ status: 404, message: "Restaurant not found" });
+    if (!rawText) {
+      return next({ status: 400, message: 'rawText is required' });
+    }
 
+    if (!location?.lat || !location?.lng) {
+      return next({ status: 400, message: 'location.lat and location.lng are required' });
+    }
+
+    // Step 1 — Parse natural language into structured intent via Claude API
+    const intent = await parseIntent(rawText);
+
+    // Step 2 — Create booking with parsed intent fields
+    // restaurantId/Name/Phone are null — agent populates these after confirmation
     const booking = await Booking.create({
       userId: req.user.id,
-      restaurantId: restaurant._id,
-      restaurantName: restaurant.name,
-      restaurantPhone: restaurant.phone,
-      date,
-      timeSlot,
-      partySize,
+      cuisine: intent.cuisine,
+      date: intent.date,
+      timeSlot: intent.timeSlot,
+      partySize: intent.partySize,
+      budget: intent.budget || null,
+      mood: intent.mood || null,
+      location: {
+        lat: location.lat,
+        lng: location.lng
+      },
+      status: BOOKING_STATUS.INITIATED
     });
 
-    // Kick off scraper agent (fire-and-track, not awaited blocking the response in real BullMQ setup —
-    // for MVP without queue yet, we await it directly)
-    const agentResult = await runScraperAgent(booking._id, restaurant.cuisine);
+    // Step 3 — Create AgentSession tied to this booking
+    const session = await AgentSession.create({
+      bookingId: booking._id,
+      status: AGENT_SESSION_STATUS.SEARCHING
+    });
 
-    booking.agentSessionId = agentResult.sessionId;
+    // Step 4 — Link session back to booking
+    booking.agentSessionId = session._id;
+    booking.status = BOOKING_STATUS.AGENT_SEARCHING;
     await booking.save();
 
-    res.status(201).json({ success: true, data: booking, agent: agentResult });
+    // Step 5 — Respond to client immediately
+    // Scraper runs after response — client gets real-time updates via WebSocket
+    res.status(201).json({
+      success: true,
+      message: 'Booking intent received. Agent is searching for restaurants.',
+      data: {
+        bookingId: booking._id,
+        sessionId: session._id,
+        status: booking.status,
+        intent: {
+          cuisine: intent.cuisine,
+          date: intent.date,
+          timeSlot: intent.timeSlot,
+          partySize: intent.partySize,
+          budget: intent.budget,
+          mood: intent.mood
+        }
+      }
+    });
+
+    // Step 6 — Kick off scraper agent AFTER response
+    // This is fire-and-continue — client tracks progress via WebSocket
+    // BullMQ will sit here at Level 2
+    runScraperAgent(booking._id, session._id, intent).catch((err) => {
+      console.error(`Scraper agent failed for booking ${booking._id}:`, err.message);
+    });
+
   } catch (err) {
     next(err);
   }
 };
 
+/**
+ * GET /bookings/me
+ * User fetches their own bookings
+ */
 const getMyBookings = async (req, res, next) => {
   try {
-    const bookings = await Booking.find({ userId: req.user.id });
+    const bookings = await Booking.find({ userId: req.user.id })
+      .sort({ createdAt: -1 });
+
     res.status(200).json({ success: true, data: bookings });
   } catch (err) {
     next(err);
   }
 };
 
+/**
+ * GET /bookings
+ * Admin fetches all bookings
+ */
 const getAllBookings = async (req, res, next) => {
   try {
-    const bookings = await Booking.find();
+    const bookings = await Booking.find()
+      .populate('userId', 'username email')
+      .sort({ createdAt: -1 });
+
     res.status(200).json({ success: true, data: bookings });
   } catch (err) {
     next(err);
   }
 };
 
+/**
+ * GET /bookings/:id
+ * Fetch single booking — controller uses req.resource
+ * already fetched and ownership-verified by ABAC middleware
+ */
+const getBookingById = async (req, res, next) => {
+  try {
+    res.status(200).json({ success: true, data: req.resource });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * PATCH /bookings/:id/cancel
+ * User cancels their own booking — status change only, no hard delete
+ * req.resource already fetched by ABAC middleware
+ */
+const cancelBooking = async (req, res, next) => {
+  try {
+    const booking = req.resource;
+
+    const nonCancellableStatuses = [
+      BOOKING_STATUS.COMPLETED,
+      BOOKING_STATUS.FAILED,
+      BOOKING_STATUS.CANCELLED
+    ];
+
+    if (nonCancellableStatuses.includes(booking.status)) {
+      return next({
+        status: 400,
+        message: `Booking cannot be cancelled when status is ${booking.status}`
+      });
+    }
+
+    booking.status = BOOKING_STATUS.CANCELLED;
+    await booking.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Booking cancelled successfully',
+      data: booking
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * DELETE /bookings/:id
+ * Admin hard deletes a booking
+ * req.resource already fetched by ABAC middleware
+ */
 const deleteBooking = async (req, res, next) => {
   try {
-    const booking = await Booking.findByIdAndDelete(req.params.id);
-    if (!booking) return next({ status: 404, message: "Booking not found" });
-    res.status(200).json({ success: true, message: "Deleted" });
+    await req.resource.deleteOne();
+
+    res.status(200).json({
+      success: true,
+      message: 'Booking deleted successfully'
+    });
   } catch (err) {
     next(err);
   }
 };
 
 module.exports = {
-  createBooking,
+  createBookingIntent,
   getMyBookings,
   getAllBookings,
-  deleteBooking,
+  getBookingById,
+  cancelBooking,
+  deleteBooking
 };
