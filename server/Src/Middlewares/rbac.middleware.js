@@ -19,10 +19,10 @@ const rolePermissions = {
   ]
 };
 
-const requirePermission = (permission) => (req, res, next) => {
+const requirePermission = (PERMISSIONS) => (req, res, next) => {
   const userPermissions = rolePermissions[req.user.role];
 
-  if (!userPermissions || !userPermissions.includes(permission)) {
+  if (!userPermissions || !userPermissions.includes(PERMISSIONS)) {
     return next({ status: 403, message: 'Forbidden: insufficient permission' });
   }
 
