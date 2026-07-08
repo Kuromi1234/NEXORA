@@ -1,4 +1,3 @@
-// controllers/booking.controller.js
 const Booking = require('../models/Booking.model');
 const AgentSession = require('../models/AgentSession.model');
 const { parseIntent } = require('../services/intent.service');
