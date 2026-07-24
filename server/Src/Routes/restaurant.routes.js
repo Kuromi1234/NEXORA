@@ -1,17 +1,21 @@
+// routes/restaurant.routes.js
 const express = require('express');
 const router = express.Router();
-const authMiddleware = require('../Middlewares/auth.middleware');
-const requirePermission = require('../Middlewares/rbac.middleware');
+const authMiddleware = require('../middleware/auth.middleware');
+const { requirePermission } = require('../middleware/rbac.middleware');
+const { PERMISSIONS } = require('../utils/constants');
 const {
   createRestaurant,
   getRestaurants,
   getRestaurantById,
+  updateRestaurant,
   deleteRestaurant
-} = require('../Controllers/restaurant.controller');
+} = require('../controllers/restaurant.controller');
 
-router.get('/', authMiddleware, requirePermission('restaurant:read'), getRestaurants);
-router.get('/:id', authMiddleware, requirePermission('restaurant:read'), getRestaurantById);
-router.post('/create', authMiddleware, requirePermission('restaurant:manage'), createRestaurant);
-router.delete('/:id', authMiddleware, requirePermission('restaurant:manage'), deleteRestaurant);
+router.get('/', authMiddleware, requirePermission(PERMISSIONS.RESTAURANT_READ), getRestaurants);
+router.get('/:id', authMiddleware, requirePermission(PERMISSIONS.RESTAURANT_READ), getRestaurantById);
+router.post('/', authMiddleware, requirePermission(PERMISSIONS.RESTAURANT_MANAGE), createRestaurant);
+router.patch('/:id', authMiddleware, requirePermission(PERMISSIONS.RESTAURANT_MANAGE), updateRestaurant);
+router.delete('/:id', authMiddleware, requirePermission(PERMISSIONS.RESTAURANT_MANAGE), deleteRestaurant);
 
 module.exports = router;
